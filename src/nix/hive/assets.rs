@@ -15,7 +15,6 @@ use super::{Flake, HivePath};
 use crate::error::ColmenaResult;
 use crate::nix::flake::lock_flake_quiet;
 
-const FLAKE_NIX: &str = include_str!("flake.nix");
 const EVAL_NIX: &[u8] = include_bytes!("eval.nix");
 const OPTIONS_NIX: &[u8] = include_bytes!("options.nix");
 const MODULES_NIX: &[u8] = include_bytes!("modules.nix");
@@ -44,17 +43,7 @@ impl Assets {
         let mut assets_flake_uri = None;
 
         if let HivePath::Flake(hive_flake) = &hive_path {
-            // Emit a temporary flake, then resolve the locked URI
-            let flake_nix = FLAKE_NIX.replace("%hive%", hive_flake.locked_uri());
-            create_file(&temp_dir, "flake.nix", false, flake_nix.as_bytes())?;
-
-            // We explicitly specify `path:` instead of letting Nix resolve
-            // automatically, which would involve checking parent directories
-            // for a git repository.
-            let uri = format!("path:{}", temp_dir.path().to_str().unwrap());
-            let _ = lock_flake_quiet(&uri).await;
-            let assets_flake = Flake::from_uri(uri).await?;
-            assets_flake_uri = Some(assets_flake.locked_uri().to_owned());
+            assets_flake_uri = Some(hive_flake.locked_uri().to_owned());
         }
 
         Ok(Self {

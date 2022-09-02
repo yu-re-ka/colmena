@@ -100,6 +100,11 @@
         inherit (colmenaOptions) deploymentOptions metaOptions;
         inherit (colmenaModules) keyChownModule keyServiceModule;
     };
+    evalHive = colmena: import ./src/nix/hive/eval.nix {
+      rawFlake.outputs = { inherit colmena; };
+      colmenaOptions = import ./src/nix/hive/options.nix;
+      colmenaModules = import ./src/nix/hive/modules.nix;
+    };
   };
 
   nixConfig = {
